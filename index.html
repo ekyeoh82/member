@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b3122a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Member Club</title>
+<script src="config.js"></script>
+<script src="lib/qrcode.js"></script>
+<style>
+:root{--red:#b3122a;--red2:#d8344a;--bg:#f4f4f6;--text:#222;--muted:#8a8a90;--line:#ececf0;--ok:#1f9d55}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding-bottom:calc(84px + env(safe-area-inset-bottom));font-size:15px}
+button{font:inherit;cursor:pointer}
+input,textarea,select{font:inherit;width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;background:#fff;color:var(--text)}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 18px 6px}
+.brand{font-weight:800;font-size:21px;color:var(--red);letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.brand img{width:28px;height:28px;border-radius:8px}
+.title{font-size:20px;font-weight:700}
+.demo{font-size:11px;background:#fff1c2;color:#7a5a00;padding:3px 8px;border-radius:20px}
+.ico{width:22px;height:22px;display:block}
+/* 会员卡 */
+.mcard{margin:10px 16px;border-radius:20px;padding:18px 18px 0;color:#fff;position:relative;overflow:hidden;
+  background:radial-gradient(circle at 85% 20%,#c9a24f55,transparent 45%),linear-gradient(135deg,#2a1e13 0%,#55401f 55%,#a8833a 100%);box-shadow:0 10px 24px rgba(60,40,10,.25)}
+.mcard .row{display:flex;gap:14px;align-items:center}
+.avatar{width:64px;height:64px;flex:none;border-radius:50%;background:#ffffff2e;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;overflow:hidden;border:2px solid #fff7}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.name{font-size:21px;font-weight:700}
+.sub{opacity:.82;font-size:13px}
+.meta{margin-top:14px;font-size:14px;line-height:1.8;padding-right:100px}
+.qr{position:absolute;right:16px;bottom:56px;background:#fff;padding:6px;border-radius:10px;width:86px;height:86px;border:0}
+.qr svg{width:100%;height:100%;display:block}
+.badge{position:absolute;right:16px;top:14px;background:var(--ok);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.joined{margin:14px -18px 0;padding:11px;text-align:center;background:#0000002e;font-weight:700;font-size:14px}
+/* 快捷 */
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 12px}
+.gi{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:13px;background:none;border:0;color:var(--text);padding:0}
+.gi .ic{width:54px;height:54px;border-radius:50%;background:linear-gradient(145deg,var(--red2),var(--red));display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 5px 12px #b3122a40}
+.gi.soon{color:var(--muted)}.gi.soon .ic{background:#efc3c9;box-shadow:none}
+.pts{margin:0 16px;border-radius:16px;padding:18px 20px;color:#fff;background:linear-gradient(120deg,#9c0f24,var(--red2));display:flex;justify-content:space-between;align-items:center;border:0;width:calc(100% - 32px);text-align:left}
+.big{font-size:26px;font-weight:800;margin-top:2px}
+.pts .ico{width:40px;height:40px;color:#ffd968}
+h3.sec{margin:22px 18px 10px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+h3.sec a{font-size:13px;color:var(--red);font-weight:500;text-decoration:none}
+/* 列表 */
+.list{margin:0 16px;display:flex;flex-direction:column;gap:10px}
+.act{background:#fff;border-radius:14px;padding:14px;display:flex;gap:12px;align-items:flex-start}
+.dt{flex:none;width:52px;text-align:center;background:#fdf0f2;color:var(--red);border-radius:10px;padding:6px 0}
+.dt .d{font-size:21px;font-weight:800;line-height:1.1}.dt .mth{font-size:11px}
+.ai{flex:1;min-width:0}
+.at{font-weight:700;margin-bottom:4px}
+.am{font-size:13px;color:var(--muted);line-height:1.6}
+.desc{font-size:13px;margin-top:6px;color:#555;white-space:pre-wrap}
+.acts{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#eee;color:#666;font-weight:500;vertical-align:middle;margin-left:4px}
+.tag.ok{background:#e3f6ea;color:var(--ok)}.tag.warn{background:#fff1c2;color:#7a5a00}.tag.bad{background:#fde3e6;color:var(--red)}
+.btn{background:var(--red);color:#fff;border:0;border-radius:22px;padding:9px 18px;font-weight:600}
+.btn.ghost{background:#fff;color:var(--red);border:1px solid var(--red)}
+.btn.block{display:block;width:100%;padding:14px;font-size:16px;border-radius:12px}
+.btn:disabled{opacity:.45}
+.empty{text-align:center;color:var(--muted);padding:50px 0}
+.empty .ico{width:56px;height:56px;margin:0 auto 10px;opacity:.35}
+.loader{width:28px;height:28px;border:3px solid #eee;border-top-color:var(--red);border-radius:50%;margin:30px auto;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.seg{display:flex;margin:8px 16px 14px;background:#fff;border:1px solid #f0c9cf;border-radius:14px;padding:4px}
+.seg button{flex:1;border:0;background:none;padding:10px 4px;border-radius:10px;color:var(--red);font-weight:600;font-size:14px}
+.seg button.on{background:var(--red);color:#fff;box-shadow:0 3px 8px #b3122a40}
+/* 设置 */
+.group{background:#fff;border-radius:14px;margin:12px 16px;overflow:hidden}
+.group h4{margin:0;padding:14px 16px 4px;font-size:15px}
+.item{display:flex;align-items:center;gap:12px;padding:15px 16px;border:0;background:none;width:100%;text-align:left;border-bottom:1px solid var(--line);color:var(--text)}
+.item:last-child{border-bottom:0}
+.item .ico{color:var(--red)}
+.item .r{margin-left:auto;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:4px}
+.item .chev{color:var(--red2)}
+/* 打卡 */
+.punch{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:6px 16px}
+.pbtn{border:0;border-radius:18px;padding:20px 10px;color:#fff;font-weight:700;font-size:17px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 14px #0002}
+.pbtn .ico{width:30px;height:30px}
+.pbtn.in{background:linear-gradient(140deg,#25a35e,#167a43)}
+.pbtn.out{background:linear-gradient(140deg,#4d6bd6,#2c47a8)}
+.pbtn.visit{grid-column:span 2;background:linear-gradient(140deg,var(--red2),var(--red));flex-direction:row;justify-content:center}
+.clock{text-align:center;margin:6px 0 16px}
+.clock .tm{font-size:40px;font-weight:800;letter-spacing:1px}
+.clock .sub{color:var(--muted);opacity:1}
+.rec{background:#fff;border-radius:12px;padding:12px 14px;font-size:13px}
+.rec b{font-size:14px}
+.rec a{color:var(--red)}
+.map{width:100%;height:220px;border:0;border-radius:12px;background:#eee;margin-top:6px}
+.gpsinfo{font-size:13px;color:var(--muted);margin:8px 0}
+/* 底部导航 */
+nav#tabs{position:fixed;left:0;right:0;bottom:0;background:#fff;display:flex;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:10}
+nav button{flex:1;border:0;background:none;padding:9px 0 10px;font-size:12px;color:#9a9aa0;display:flex;flex-direction:column;align-items:center;gap:3px}
+nav button.on{color:var(--red)}
+nav .mid{position:relative}
+nav .mid .fab{width:62px;height:62px;border-radius:50%;background:linear-gradient(145deg,var(--red2),var(--red));color:#fff;display:flex;align-items:center;justify-content:center;margin-top:-30px;box-shadow:0 6px 16px #b3122a66;border:4px solid #fff}
+nav .mid .fab .ico{width:28px;height:28px}
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:#0006;z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:20px 20px 0 0;padding:18px 18px calc(20px + env(safe-area-inset-bottom))}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.sheet .hd b{font-size:18px}
+.x{border:0;background:#e8e8ec;width:32px;height:32px;border-radius:50%;font-size:18px;color:#555;flex:none}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#222e;color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;z-index:30;opacity:0;transition:.25s;pointer-events:none;max-width:86%;text-align:center}
+#toast.show{opacity:1}
+.install{margin:8px 16px;background:#fff;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px dashed var(--red2)}
+.install .ico{color:var(--red);flex:none}
+.install .t{flex:1;font-size:14px}
+.install .x{width:26px;height:26px;font-size:14px}
+/* 登录 */
+.login{max-width:420px;margin:0 auto;padding:calc(50px + env(safe-area-inset-top)) 24px 20px}
+.login .logo{width:84px;height:84px;border-radius:22px;display:block;margin:0 auto 14px;box-shadow:0 8px 20px #b3122a40}
+.login h1{text-align:center;margin:0 0 4px;color:var(--red)}
+.login p.c{text-align:center;color:var(--muted);margin:0 0 20px}
+.err{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}
+.qrbig{background:#fff;border-radius:16px;padding:20px;text-align:center}
+.qrbig svg{width:240px;height:240px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav id="tabs" hidden></nav>
+<div id="toast"></div>
+
+<script>
+'use strict';
+const C = window.APP_CONFIG || {};
+const DEMO = !C.API_URL;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+
+/* ---------- 文字（中 / 英） ---------- */
+const I18N = {
+  zh: { login:'会员登录', loginSub:'请输入会员ID或电话号码', memberId:'会员ID / 电话', password:'密码', signin:'登录', demoHint:'演示模式：任意ID，密码 123456',
+    home:'首页', events:'活动', punch:'打卡', points:'积分', me:'我的', branch:'分行', level:'等级', joined:'加入时期', myPoints:'我的积分',
+    org:'组织', shop:'商店', donate:'捐款', honor:'荣誉', soon:'即将推出', upcoming:'近期活动', more:'全部',
+    all:'所有活动', registered:'已报名', host:'举办活动', history:'活动历史', noData:'未找到数据', register:'报名', cancel:'取消报名', full:'已满',
+    quota:'名额', place:'地点', account:'账户', bio:'简历', changePw:'修改密码', prefs:'偏好设置', language:'语言', feedback:'反馈',
+    legal:'法律条款', privacy:'隐私声明', logout:'退出登录', save:'保存', submit:'提交', oldPw:'旧密码', newPw:'新密码（至少6位）',
+    install:'安装到手机桌面', installTip:'安装后像App一样打开', installBtn:'安装', iosTip:'Safari 点下方「分享」→「添加到主屏幕」',
+    otherTip:'浏览器菜单 ⋮ →「添加到主屏幕 / 安装应用」', title:'标题', date:'日期', time:'时间', desc:'说明', newEvent:'+ 举办新活动',
+    pending:'待审核', open:'开放', closed:'关闭', submitted:'已提交，等待审核', saved:'已保存', done:'完成', demo:'演示模式', pointsLog:'积分记录',
+    membersN:'位会员', attended:'已出席', showQR:'请出示此码给工作人员', confirmLogout:'确定退出登录？', fbPh:'请写下您的意见或问题…',
+    punchIn:'到达打卡', punchOut:'离开打卡', visit:'地点打卡', schoolName:'地点名称', note:'备注（可不填）',
+    locating:'正在定位…请稍候', accuracy:'定位精度', meters:'米', confirmPunch:'确认打卡', punched:'打卡成功', inRange:'在范围内', outRange:'不在范围内',
+    myRecords:'我的打卡记录', eventCheck:'活动现场签到', checkInNow:'现场签到', checkedIn:'签到成功', noTodayEvent:'今天没有可签到的活动',
+    useMyLoc:'使用我现在的位置作为活动地点', locSet:'已设定活动位置', viewMap:'看地图', staffOnly:'到达/离开打卡（需管理员开通）', locCheck:'定位打卡', eventHint:'在活动现场签到，自动记出席并加积分',
+    err_LOGIN_FAILED:'会员ID或密码错误', err_FULL:'名额已满', err_NOT_OPEN:'活动未开放报名', err_AUTH:'登录已过期，请重新登录',
+    err_NO_PERMISSION:'没有权限', err_MISSING:'请填写必填项', err_WRONG_PASSWORD:'旧密码错误', err_PW_SHORT:'新密码至少6位',
+    err_ATTENDED:'已出席，不能取消', err_NETWORK:'网络错误，请再试', err_NO_LOCATION:'拿不到定位', err_NOT_TODAY:'只能在活动当天签到',
+    err_TOO_FAR:'离活动地点太远（{d} 米），请到现场再签到', err_GPS_DENIED:'定位权限被拒绝：请到手机设定 → 应用/网站权限 → 允许「位置」',
+    err_GPS_FAIL:'定位失败，请打开手机 GPS / 位置服务后再试', err_NO_GPS:'这台手机不支持定位' },
+  en: { login:'Member Login', loginSub:'Enter your member ID or phone', memberId:'Member ID / Phone', password:'Password', signin:'Sign in', demoHint:'Demo: any ID, password 123456',
+    home:'Home', events:'Events', punch:'Check-in', points:'Points', me:'Me', branch:'Branch', level:'Level', joined:'Joined', myPoints:'My points',
+    org:'Members', shop:'Shop', donate:'Donate', honor:'Honours', soon:'Coming soon', upcoming:'Upcoming', more:'All',
+    all:'All', registered:'Registered', host:'Host', history:'History', noData:'No data found', register:'Register', cancel:'Cancel', full:'Full',
+    quota:'Seats', place:'Venue', account:'Account', bio:'Profile', changePw:'Change password', prefs:'Preferences', language:'Language', feedback:'Feedback',
+    legal:'Legal', privacy:'Privacy notice', logout:'Log out', save:'Save', submit:'Submit', oldPw:'Current password', newPw:'New password (min 6)',
+    install:'Install on phone', installTip:'Opens like a normal app', installBtn:'Install', iosTip:'In Safari tap Share → Add to Home Screen',
+    otherTip:'Browser menu ⋮ → Add to Home screen / Install app', title:'Title', date:'Date', time:'Time', desc:'Details', newEvent:'+ Host an event',
+    pending:'Pending', open:'Open', closed:'Closed', submitted:'Submitted for approval', saved:'Saved', done:'Done', demo:'Demo', pointsLog:'Points history',
+    membersN:'members', attended:'Attended', showQR:'Show this code to staff', confirmLogout:'Log out?', fbPh:'Your comments or questions…',
+    punchIn:'Arrive', punchOut:'Leave', visit:'Place check-in', schoolName:'Place name', note:'Note (optional)',
+    locating:'Getting your location…', accuracy:'Accuracy', meters:'m', confirmPunch:'Confirm check-in', punched:'Checked in', inRange:'In range', outRange:'Out of range',
+    myRecords:'My check-ins', eventCheck:'Event check-in', checkInNow:'Check in here', checkedIn:'Checked in', noTodayEvent:'No event to check in today',
+    useMyLoc:'Use my current location as venue', locSet:'Venue location set', viewMap:'Map', staffOnly:'Arrive / leave check-in (ask admin to enable)', locCheck:'Location check-in', eventHint:'Check in at the venue to record attendance and earn points',
+    err_LOGIN_FAILED:'Wrong ID or password', err_FULL:'Event is full', err_NOT_OPEN:'Registration closed', err_AUTH:'Session expired, please log in',
+    err_NO_PERMISSION:'Not allowed', err_MISSING:'Please fill in required fields', err_WRONG_PASSWORD:'Current password is wrong', err_PW_SHORT:'Min 6 characters',
+    err_ATTENDED:'Already attended', err_NETWORK:'Network error, try again', err_NO_LOCATION:'No location', err_NOT_TODAY:'Check-in only on the event day',
+    err_TOO_FAR:'Too far from venue ({d} m)', err_GPS_DENIED:'Location permission denied: allow Location in phone settings',
+    err_GPS_FAIL:'Could not get location. Turn on GPS and try again', err_NO_GPS:'Location not supported' },
+};
+const S = { token: ls('tk'), me: null, tab: 'home', sub: 'all', lang: ls('lang') || C.LANG || 'zh', today: [] };
+const t = k => (I18N[S.lang] || I18N.zh)[k] || I18N.zh[k] || k;
+function errMsg(e) {
+  const code = String((e && e.message) || e);
+  if (code.indexOf('TOO_FAR:') === 0) return t('err_TOO_FAR').replace('{d}', code.split(':')[1]);
+  return I18N[S.lang]['err_' + code] ? t('err_' + code) : code;
+}
+
+/* ---------- 图标 ---------- */
+const sv = p => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  home: sv('<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>'),
+  cal: sv('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+  star: sv('<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z"/>'),
+  user: sv('<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>'),
+  people: sv('<circle cx="9" cy="8" r="3.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M2 20c.8-3.5 3.6-5 7-5s6.2 1.5 7 5M16 14.6c2.8 0 5 1.3 6 4.4"/>'),
+  cart: sv('<path d="M3 4h2l2.4 11h11l2-8H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/>'),
+  heart: sv('<path d="M12 20s-7-4.4-9-9a4.8 4.8 0 0 1 9-3 4.8 4.8 0 0 1 9 3c-2 4.6-9 9-9 9z"/>'),
+  trophy: sv('<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 13v4M8 21h8M9 17h6"/>'),
+  pin: sv('<path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.6"/>'),
+  doc: sv('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'),
+  lock: sv('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
+  globe: sv('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>'),
+  msg: sv('<path d="M4 4h16v12H8l-4 4z"/><path d="M12 8v3M12 13.5v.01"/>'),
+  shield: sv('<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>'),
+  out: sv('<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>'),
+  dl: sv('<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>'),
+  clockIn: sv('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  logout2: sv('<path d="M9 4H5v16h4M14 8l4 4-4 4M18 12H8"/>'),
+  empty: sv('<path d="M4 13l3-8h10l3 8v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>'),
+};
+const chev = '<span class="chev">›</span>';
+
+/* ---------- API ---------- */
+async function api(action, data) {
+  data = data || {};
+  if (DEMO) return demoApi(action, data);
+  let r;
+  try {
+    r = await fetch(C.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action, token: S.token }, data)) });
+  } catch (e) { throw new Error('NETWORK'); }
+  const j = await r.json().catch(() => ({ ok: false, error: 'NETWORK' }));
+  if (!j.ok) { if (j.error === 'AUTH' && action !== 'login') { doLogout(true); } throw new Error(j.error); }
+  return j.data;
+}
+
+/* ---------- 定位 ---------- */
+function getLoc() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error('NO_GPS'));
+    navigator.geolocation.getCurrentPosition(
+      p => res({ lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), acc: Math.round(p.coords.accuracy) }),
+      e => rej(new Error(e.code === 1 ? 'GPS_DENIED' : 'GPS_FAIL')),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+  });
+}
+function mapFrame(loc) {
+  const d = 0.004;
+  const bbox = [loc.lng - d, loc.lat - d * 0.7, loc.lng + d, loc.lat + d * 0.7].join(',');
+  return `<iframe class="map" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${loc.lat},${loc.lng}"></iframe>`;
+}
+
+/* ---------- 安装 (PWA) ---------- */
+let deferredPrompt = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; refreshInstall(); });
+window.addEventListener('appinstalled', () => { deferredPrompt = null; toast(t('done')); refreshInstall(); });
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+function installBanner() {
+  if (isStandalone() || ls('hideInstall')) return '<div id="inst"></div>';
+  if (!deferredPrompt && !isIOS) return '<div id="inst"></div>';
+  return `<div id="inst"><div class="install">${ICON.dl}<div class="t"><b>${t('install')}</b><div class="sub" style="color:var(--muted)">${isIOS ? t('iosTip') : t('installTip')}</div></div>
+    ${deferredPrompt ? `<button class="btn" data-act="install">${t('installBtn')}</button>` : ''}<button class="x" data-act="hideInstall">×</button></div></div>`;
+}
+function refreshInstall() { const el = $('#inst'); if (el) el.outerHTML = installBanner(); }
+async function doInstall() {
+  if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice.catch(() => {}); deferredPrompt = null; refreshInstall(); }
+  else openSheet(t('install'), `<p>${isIOS ? t('iosTip') : t('otherTip')}</p>`);
+}
+
+/* ---------- 小工具 ---------- */
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2600); }
+const dmy = s => { const p = String(s || '').split('-'); return p.length === 3 ? `${p[2]}-${p[1]}-${p[0]}` : s; };
+const MON = { zh: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'], en: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'] };
+function qrSvg(text) { const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true }); }
+const loader = '<div class="loader"></div>';
+const empty = () => `<div class="empty">${ICON.empty}${t('noData')}</div>`;
+function localDate(d) { d = d || new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+function openSheet(title, html, mount) {
+  closeSheet();
+  const m = document.createElement('div');
+  m.className = 'mask'; m.id = 'mask';
+  m.innerHTML = `<div class="sheet"><div class="hd"><b>${esc(title)}</b><button class="x" data-act="close">×</button></div><div id="sheetBody">${html}</div></div>`;
+  m.addEventListener('click', e => { if (e.target === m) closeSheet(); });
+  document.body.appendChild(m);
+  if (mount) mount($('#sheetBody'));
+}
+function closeSheet() { const m = $('#mask'); if (m) m.remove(); }
+
+/* ---------- 画面 ---------- */
+function render() {
+  document.documentElement.lang = S.lang === 'zh' ? 'zh' : 'en';
+  document.title = C.APP_NAME || '会员系统';
+  if (!S.me) { $('#tabs').hidden = true; loginView(); return; }
+  $('#tabs').hidden = false; renderTabs();
+  ({ home: homeView, events: eventsView, punch: punchView, points: pointsView, me: meView })[S.tab]();
+  window.scrollTo(0, 0);
+}
+
+function renderTabs() {
+  const b = (k, ic) => `<button class="${S.tab === k ? 'on' : ''}" data-tab="${k}">${ICON[ic]}${t(k)}</button>`;
+  $('#tabs').innerHTML = b('home', 'home') + b('events', 'cal') +
+    `<button class="mid ${S.tab === 'punch' ? 'on' : ''}" data-tab="punch"><span class="fab">${ICON.pin}</span>${t('punch')}</button>` +
+    b('points', 'star') + b('me', 'user');
+}
+
+function loginView() {
+  $('#app').innerHTML = `<div class="login">
+    <img class="logo" src="icons/icon.svg" alt="">
+    <h1>${esc(C.APP_NAME || '会员系统')}</h1><p class="c">${t('loginSub')}</p>
+    ${installBanner()}
+    <form id="lf"><label>${t('memberId')}</label><input name="id" autocomplete="username" inputmode="text" required>
+    <label>${t('password')}</label><input name="pw" type="password" autocomplete="current-password" required>
+    <div class="err" id="lerr">${DEMO ? esc(t('demoHint')) : ''}</div>
+    <button class="btn block" style="margin-top:10px">${t('signin')}</button></form>
+    <p class="c" style="margin-top:22px"><button class="btn ghost" data-act="lang">中文 / English</button></p></div>`;
+  $('#lf').onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target, btn = f.querySelector('button.block'); btn.disabled = true;
+    try {
+      const r = await api('login', { id: f.id.value.trim(), password: f.pw.value });
+      S.token = r.token; ls('tk', r.token); S.me = r.profile; S.tab = 'home'; render();
+    } catch (err) { $('#lerr').textContent = errMsg(err); btn.disabled = false; }
+  };
+}
+
+function homeView() {
+  const m = S.me;
+  const gi = (k, ic, live, act) => `<button class="gi ${live ? '' : 'soon'}" data-act="${live ? act : 'soon'}"><span class="ic">${ICON[ic]}</span>${t(k)}</button>`;
+  $('#app').innerHTML = `
+  <header class="top"><div class="brand"><img src="icons/icon.svg" alt="">${esc(C.APP_NAME || '会员系统')}</div>${DEMO ? `<span class="demo">${t('demo')}</span>` : ''}</header>
+  ${installBanner()}
+  <div class="mcard">
+    <div class="badge">✓</div>
+    <div class="row"><div class="avatar">${m.avatar ? `<img src="${esc(m.avatar)}" alt="">` : esc((m.name || '?').trim().charAt(0))}</div>
+      <div><div class="name">${esc(m.name)}</div><div class="sub">ID: ${esc(m.id)}</div></div></div>
+    <div class="meta">${t('branch')}: <b>${esc(m.branch)}</b><br>${t('level')}: <b>${esc(m.level)}</b></div>
+    <button class="qr" data-act="qr" aria-label="QR">${qrSvg('MEMBER:' + m.id)}</button>
+    <div class="joined">${t('joined')}: ${esc(dmy(m.joined))}</div>
+  </div>
+  <div class="grid">${gi('org', 'people', true, 'org')}${gi('shop', 'cart')}${gi('donate', 'heart')}${gi('honor', 'trophy', true, 'goPoints')}</div>
+  <button class="pts" data-act="goPoints"><div><div class="sub">${t('myPoints')}</div><div class="big">${m.points} pts</div></div>${ICON.trophy}</button>
+  <h3 class="sec">${t('upcoming')}<a href="#" data-tab="events">${t('more')} ›</a></h3>
+  <div class="list" id="upc">${loader}</div>`;
+  api('activities', { mode: 'all' }).then(list => {
+    const el = $('#upc'); if (!el) return;
+    el.innerHTML = list.length ? list.slice(0, 3).map(a => actCard(a, 'all')).join('') : empty();
+  }).catch(e => { const el = $('#upc'); if (el) el.innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; });
+}
+
+function actCard(a, mode) {
+  const p = String(a.date).split('-');
+  const full = a.quota && a.count >= a.quota;
+  let tag = '', btns = '';
+  if (mode === 'hosted') tag = `<span class="tag ${a.status === '开放' ? 'ok' : a.status === '待审核' ? 'warn' : ''}">${esc({ '开放': t('open'), '关闭': t('closed'), '待审核': t('pending') }[a.status] || a.status)}</span>`;
+  else if (a.attended) tag = `<span class="tag ok">${t('attended')}</span>`;
+  else if (a.registered) tag = `<span class="tag ok">${t('registered')}</span>`;
+  if ((mode === 'all' || mode === 'mine') && !a.attended) {
+    btns = a.registered ? `<button class="btn ghost" data-cancel="${esc(a.id)}">${t('cancel')}</button>`
+      : full ? `<button class="btn" disabled>${t('full')}</button>` : `<button class="btn" data-reg="${esc(a.id)}">${t('register')}</button>`;
+    if (a.date === localDate() && !a.attended) btns += `<button class="btn ghost" data-checkin="${esc(a.id)}">📍 ${t('checkInNow')}</button>`;
+  }
+  return `<div class="act"><div class="dt"><div class="d">${esc(p[2] || '')}</div><div class="mth">${esc(MON[S.lang][(+p[1] || 1) - 1])}</div></div>
+    <div class="ai"><div class="at">${esc(a.title)}${tag}</div>
+    <div class="am">🕒 ${esc(a.time || '-')}${a.location ? ' · 📍 ' + esc(a.location) : ''}</div>
+    <div class="am">${t('quota')}: ${a.count}${a.quota ? ' / ' + a.quota : ''}${a.points ? ` · ⭐ ${a.points} pts` : ''}</div>
+    ${a.desc ? `<div class="desc">${esc(a.desc)}</div>` : ''}
+    ${btns ? `<div class="acts">${btns}</div>` : ''}</div></div>`;
+}
+
+function eventsView() {
+  const subs = [['all', 'all'], ['mine', 'registered']];
+  if (S.me.canHost) subs.push(['hosted', 'host']);
+  if (!subs.concat([['history']]).some(s => s[0] === S.sub)) S.sub = 'all';
+  $('#app').innerHTML = `
+  <header class="top"><div class="title">${t('events')}</div><button class="btn ${S.sub === 'history' ? '' : 'ghost'}" data-sub="history">${ICON.cal.replace('class="ico"', 'class="ico" style="width:16px;height:16px;display:inline;vertical-align:-3px"')} ${t('history')}</button></header>
+  <div class="seg">${subs.map(s => `<button class="${S.sub === s[0] ? 'on' : ''}" data-sub="${s[0]}">${t(s[1])}</button>`).join('')}</div>
+  ${S.sub === 'hosted' ? `<div style="margin:0 16px 12px"><button class="btn block" data-act="newEvent">${t('newEvent')}</button></div>` : ''}
+  <div class="list" id="alist">${loader}</div>`;
+  api('activities', { mode: S.sub }).then(list => {
+    const el = $('#alist'); if (!el) return;
+    el.innerHTML = list.length ? list.map(a => actCard(a, S.sub)).join('') : empty();
+  }).catch(e => { const el = $('#alist'); if (el) el.innerHTML = `<div class="empty">${esc(errMsg(e))}</div>`; });
+}
+
+function punchView() {
+  const now = new Date();
+  $('#app').innerHTML = `
+  <header class="top"><div class="title">${t('punch')}</div></header>
+  <div class="clock"><div class="tm" id="clk">${now.toTimeString().slice(0, 5)}</div><div class="sub">${dmy(localDate(now))}</div></div>
+  <h3 class="sec" style="margin-top:6px">${t('eventCheck')}</h3>
+  <div class="gpsinfo" style="margin:-4px 18px 10px">⭐ ${t('eventHint')}</div>
+  <div class="list" id="todayEv">${loader}</div>
+  <h3 class="sec">${t('locCheck')}</h3>
+  ${S.me.canPunch ? `<div class="punch">
+    <button class="pbtn in" data-punch="in">${ICON.clockIn}${t('punchIn')}</button>
+    <button class="pbtn out" data-punch="out">${ICON.logout2}${t('punchOut')}</button>
+    <button class="pbtn visit" data-punch="visit">${ICON.pin}${t('visit')}</button></div>` : `<div class="group"><div class="item" style="color:var(--muted)">${ICON.lock}${t('staffOnly')}</div></div>`}
+  ${S.me.canPunch ? `<h3 class="sec">${t('myRecords')}</h3><div class="list" id="recs">${loader}</div>` : ''}`;
+  clearInterval(punchView._i);
+  punchView._i = setInterval(() => { const c = $('#clk'); if (c) c.textContent = new Date().toTimeString().slice(0, 5); else clearInterval(punchView._i); }, 10000);
+  api('activities', { mode: 'all' }).then(list => {
+    const el = $('#todayEv'); if (!el) return;
+    const td = list.filter(a => a.date === localDate());
+    el.innerHTML = td.length ? td.map(a => actCard(a, 'all')).join('') : `<div class="rec" style="color:var(--muted);text-align:center">${t('noTodayEvent')}</div>`;
+  }).catch(() => {});
+  if (S.me.canPunch) loadRecords();
+}
+
+function loadRecords() {
+  api('myCheckIns').then(list => {
+    const el = $('#recs'); if (!el) return;
+    el.innerHTML = list.length ? list.map(r => `<div class="rec"><b>${esc(typeLabel(r.type))}</b>
+      ${r.inRange === '是' ? `<span class="tag ok">${t('inRange')}</span>` : r.inRange === '否' ? `<span class="tag bad">${t('outRange')}</span>` : ''}
+      <span style="float:right;color:var(--muted)">${esc(r.time)}</span>
+      ${r.place ? `<div>${ICON.pin.replace('class="ico"', 'class="ico" style="width:14px;height:14px;display:inline;vertical-align:-2px"')} ${esc(r.place)}</div>` : ''}
+      <div style="color:var(--muted);margin-top:3px">${esc(r.address || '')} ${r.map ? `<a href="${esc(r.map)}" target="_blank" rel="noopener">${t('viewMap')} ›</a>` : ''}</div></div>`).join('') : empty();
+  }).catch(() => {});
+}
+const typeLabel = ty => ({ '到达': t('punchIn'), '离开': t('punchOut'), '地点': t('visit'), '活动签到': t('eventCheck') }[ty] || ty);
+
+async function startPunch(type) {
+  openSheet({ in: t('punchIn'), out: t('punchOut'), visit: t('visit') }[type], `<div class="gpsinfo">${t('locating')}</div>${loader}`);
+  let loc;
+  try { loc = await getLoc(); } catch (e) { const b = $('#sheetBody'); if (b) b.innerHTML = `<div class="err">${esc(errMsg(e))}</div>`; return; }
+  const b = $('#sheetBody'); if (!b) return;
+  b.innerHTML = `${mapFrame(loc)}
+    <div class="gpsinfo">📍 ${loc.lat}, ${loc.lng} · ${t('accuracy')} ±${loc.acc} ${t('meters')}</div>
+    <form id="pf">${type === 'visit' ? `<label>${t('schoolName')} *</label><input name="place" required>` : ''}
+    <label>${t('note')}</label><input name="note">
+    <div class="err" id="perr"></div>
+    <button class="btn block" style="margin-top:12px">${t('confirmPunch')}</button></form>`;
+  $('#pf').onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target, btn = f.querySelector('button'); btn.disabled = true;
+    try {
+      const r = await api('checkIn', { type, loc, place: f.place ? f.place.value.trim() : '', note: f.note.value.trim() });
+      closeSheet();
+      toast(`✅ ${t('punched')} ${r.time ? r.time.slice(11) : ''}${r.inRange === false ? ' · ' + t('outRange') : ''}`);
+      loadRecords();
+    } catch (err) { $('#perr').textContent = errMsg(err); btn.disabled = false; }
+  };
+}
+
+async function eventCheckIn(id) {
+  openSheet(t('eventCheck'), `<div class="gpsinfo">${t('locating')}</div>${loader}`);
+  try {
+    const loc = await getLoc();
+    const r = await api('eventCheckIn', { activityId: id, loc });
+    closeSheet(); toast(`✅ ${t('checkedIn')}${r.points ? ` +${r.points} pts` : ''}`);
+    if (r.points) S.me.points += r.points;
+    render();
+  } catch (e) { const b = $('#sheetBody'); if (b) b.innerHTML = `<div class="err">${esc(errMsg(e))}</div>`; }
+}
+
+function pointsView() {
+  $('#app').innerHTML = `
+  <header class="top"><div class="title">${t('points')}</div></header>
+  <button class="pts" style="margin-top:6px"><div><div class="sub">${t('myPoints')}</div><div class="big">${S.me.points} pts</div></div>${ICON.trophy}</button>
+  <h3 class="sec">${t('pointsLog')}</h3><div class="list" id="plog">${loader}</div>`;
+  api('pointsLog').then(list => {
+    const el = $('#plog'); if (!el) return;
+    el.innerHTML = list.length ? list.map(r => `<div class="rec" style="display:flex;justify-content:space-between;gap:10px">
+      <div><b>${esc(r.reason)}</b><div style="color:var(--muted)">${esc(r.time)}</div></div>
+      <b style="color:${r.delta >= 0 ? 'var(--ok)' : 'var(--red)'};font-size:17px">${r.delta >= 0 ? '+' : ''}${r.delta}</b></div>`).join('') : empty();
+  }).catch(() => {});
+  api('me').then(p => { S.me = p; const b = document.querySelector('.pts .big'); if (b) b.textContent = p.points + ' pts'; }).catch(() => {});
+}
+
+function meView() {
+  const m = S.me;
+  const it = (act, ic, label, right) => `<button class="item" data-act="${act}">${ICON[ic]}<span>${label}</span><span class="r">${right || ''}${chev}</span></button>`;
+  $('#app').innerHTML = `
+  <header class="top"><div class="title">${t('me')}</div></header>
+  <div class="mcard" style="padding-bottom:18px"><div class="row"><div class="avatar">${m.avatar ? `<img src="${esc(m.avatar)}" alt="">` : esc((m.name || '?').trim().charAt(0))}</div>
+    <div><div class="name">${esc(m.name)}</div><div class="sub">ID: ${esc(m.id)} · ${esc(m.level)}</div><div class="sub">${t('branch')}: ${esc(m.branch)}</div></div></div></div>
+  <div class="group"><h4>${t('account')}</h4>${it('bio', 'doc', t('bio'))}${it('pw', 'lock', t('changePw'))}</div>
+  <div class="group"><h4>${t('prefs')}</h4>${it('lang', 'globe', t('language'), S.lang === 'zh' ? '中文' : 'English')}${it('feedback', 'msg', t('feedback'))}
+    ${isStandalone() ? '' : it('install', 'dl', t('install'))}</div>
+  <div class="group"><h4>${t('legal')}</h4>${it('privacy', 'shield', t('privacy'))}</div>
+  <div class="group"><button class="item" data-act="logout" style="color:var(--red);justify-content:center">${t('logout')}</button></div>`;
+}
+
+/* ---------- 动作 ---------- */
+function formSheet(title, fields, onSubmit) {
+  openSheet(title, `<form id="ff">${fields}<div class="err" id="ferr"></div><button class="btn block" style="margin-top:12px">${t('submit')}</button></form>`, () => {
+    $('#ff').onsubmit = async e => {
+      e.preventDefault(); const btn = e.target.querySelector('button.block'); btn.disabled = true;
+      try { await onSubmit(e.target); } catch (err) { $('#ferr').textContent = errMsg(err); btn.disabled = false; }
+    };
+  });
+}
+
+const ACTIONS = {
+  close: closeSheet,
+  install: doInstall,
+  hideInstall: () => { ls('hideInstall', '1'); refreshInstall(); },
+  soon: () => toast(t('soon')),
+  goPoints: () => { S.tab = 'points'; render(); },
+  lang: () => { S.lang = S.lang === 'zh' ? 'en' : 'zh'; ls('lang', S.lang); render(); },
+  qr: () => openSheet('QR', `<div class="qrbig">${qrSvg('MEMBER:' + S.me.id)}<p><b>${esc(S.me.name)}</b> · ID ${esc(S.me.id)}</p><p class="sub" style="color:var(--muted)">${t('showQR')}</p></div>`),
+  org: () => {
+    openSheet(t('org'), loader);
+    api('org').then(r => { const b = $('#sheetBody'); if (b) b.innerHTML = `<p><b>${esc(r.branch)}</b> · ${r.members.length} ${t('membersN')}</p>
+      <div class="group" style="margin:0">${r.members.map(x => `<div class="item">${ICON.user}<span>${esc(x.name)}</span><span class="r">${esc(x.level)}</span></div>`).join('')}</div>`; })
+      .catch(e => { const b = $('#sheetBody'); if (b) b.innerHTML = `<div class="err">${esc(errMsg(e))}</div>`; });
+  },
+  bio: () => formSheet(t('bio'), `<textarea name="bio" maxlength="1000">${esc(S.me.bio)}</textarea>`, async f => {
+    await api('updateBio', { bio: f.bio.value }); S.me.bio = f.bio.value; closeSheet(); toast(t('saved'));
+  }),
+  pw: () => formSheet(t('changePw'), `<label>${t('oldPw')}</label><input type="password" name="o" required><label>${t('newPw')}</label><input type="password" name="n" minlength="6" required>`, async f => {
+    await api('changePassword', { oldPw: f.o.value, newPw: f.n.value }); closeSheet(); toast(t('saved'));
+  }),
+  feedback: () => formSheet(t('feedback'), `<textarea name="tx" placeholder="${esc(t('fbPh'))}" required></textarea>`, async f => {
+    await api('feedback', { text: f.tx.value }); closeSheet(); toast(t('done'));
+  }),
+  privacy: () => { openSheet(t('privacy'), loader); api('privacy').then(x => { const b = $('#sheetBody'); if (b) b.innerHTML = `<p style="white-space:pre-wrap;line-height:1.7">${esc(x)}</p>`; }); },
+  logout: () => { if (confirm(t('confirmLogout'))) doLogout(); },
+  newEvent: () => {
+    let evLoc = null;
+    formSheet(t('newEvent').replace('+ ', ''), `<label>${t('title')} *</label><input name="title" required>
+      <label>${t('date')} *</label><input type="date" name="date" min="${localDate()}" required><label>${t('time')}</label><input type="time" name="time">
+      <label>${t('place')}</label><input name="location"><button type="button" class="btn ghost" id="useLoc" style="margin-top:8px">📍 ${t('useMyLoc')}</button><div class="gpsinfo" id="locInfo"></div>
+      <label>${t('quota')}</label><input type="number" name="quota" min="0" inputmode="numeric"><label>${t('desc')}</label><textarea name="desc"></textarea>`,
+      async f => {
+        await api('hostActivity', { title: f.title.value, date: f.date.value, time: f.time.value, location: f.location.value, quota: f.quota.value, desc: f.desc.value, loc: evLoc });
+        closeSheet(); toast(t('submitted')); render();
+      });
+    $('#useLoc').onclick = async () => {
+      $('#locInfo').textContent = t('locating');
+      try { evLoc = await getLoc(); $('#locInfo').textContent = `✅ ${t('locSet')} (${evLoc.lat}, ${evLoc.lng} ±${evLoc.acc}${t('meters')})`; }
+      catch (e) { $('#locInfo').textContent = errMsg(e); }
+    };
+  },
+};
+
+function doLogout(silent) {
+  if (!silent && S.token) api('logout').catch(() => {});
+  S.token = null; S.me = null; ls('tk', null); closeSheet(); render();
+  if (silent) toast(t('err_AUTH'));
+}
+
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-tab],[data-act],[data-sub],[data-reg],[data-cancel],[data-checkin],[data-punch]');
+  if (!el) return;
+  if (el.tagName === 'A') e.preventDefault();
+  const d = el.dataset;
+  if (d.tab) { closeSheet(); S.tab = d.tab; render(); }
+  else if (d.sub) { S.sub = d.sub; eventsView(); }
+  else if (d.act && ACTIONS[d.act]) ACTIONS[d.act]();
+  else if (d.punch) startPunch(d.punch);
+  else if (d.checkin) eventCheckIn(d.checkin);
+  else if (d.reg || d.cancel) {
+    el.disabled = true;
+    try { await api(d.reg ? 'register' : 'cancel', { activityId: d.reg || d.cancel }); toast(t('done')); render(); }
+    catch (err) { toast(errMsg(err)); el.disabled = false; }
+  }
+});
+
+/* ---------- 演示资料（API_URL 留空时用） ---------- */
+const DM = (() => {
+  const add = n => { const d = new Date(); d.setDate(d.getDate() + n); return localDate(d); };
+  return {
+    me: { id: '100001', name: 'Tan Wei Ming', phone: '0123456789', branch: 'Penang Branch', level: 'Branch Committee', points: 1310, joined: '2026-08-13', avatar: '', bio: '', canHost: true, canPunch: true },
+    acts: [
+      { id: 'A1', title: 'Monthly Members Gathering', date: add(0), time: '19:30', location: 'Main Hall', desc: 'Our monthly meet-up. All members welcome.', quota: 80, count: 42, points: 50, registered: true, attended: false, status: '开放', hostId: '' },
+      { id: 'A2', title: 'Charity Bazaar', date: add(6), time: '10:00', location: 'Komtar Square', desc: 'All proceeds go to the old folks home.', quota: 30, count: 30, points: 100, registered: false, attended: false, status: '开放', hostId: '' },
+      { id: 'A3', title: 'New Member Briefing', date: add(12), time: '14:00', location: 'Branch Clubhouse', desc: '', quota: 0, count: 8, points: 20, registered: false, attended: false, status: '开放', hostId: '100001' },
+      { id: 'A0', title: 'Anniversary Dinner', date: add(-20), time: '19:00', location: 'Grand Restaurant', desc: '', quota: 300, count: 240, points: 80, registered: true, attended: true, status: '关闭', hostId: '' },
+    ],
+    log: [{ time: '2026-10-12 21:05', delta: 80, reason: 'Attended: Anniversary Dinner' }, { time: '2026-09-01 10:00', delta: 1230, reason: 'Welcome points' }],
+    recs: [],
+  };
+})();
+function demoApi(action, d) {
+  return new Promise((res, rej) => setTimeout(() => {
+    try {
+      const td = localDate();
+      switch (action) {
+        case 'login': if (d.password !== '123456') throw 'LOGIN_FAILED'; return res({ token: 'demo', profile: DM.me });
+        case 'me': return res(DM.me);
+        case 'activities': {
+          const m = d.mode;
+          return res(DM.acts.filter(a => m === 'mine' ? a.registered && a.date >= td : m === 'hosted' ? a.hostId === DM.me.id : m === 'history' ? a.registered && a.date < td : a.status === '开放' && a.date >= td));
+        }
+        case 'register': { const a = DM.acts.find(x => x.id === d.activityId); if (a.quota && a.count >= a.quota) throw 'FULL'; a.registered = true; a.count++; return res(true); }
+        case 'cancel': { const a = DM.acts.find(x => x.id === d.activityId); a.registered = false; a.count--; return res(true); }
+        case 'eventCheckIn': { const a = DM.acts.find(x => x.id === d.activityId); if (!a.registered) { a.registered = true; a.count++; } a.attended = true; DM.log.unshift({ time: td, delta: a.points, reason: 'Attended: ' + a.title }); return res({ distance: 12, points: a.points }); }
+        case 'checkIn': {
+          const ty = { in: '到达', out: '离开', visit: '地点' }[d.type]; const time = td + ' ' + new Date().toTimeString().slice(0, 5);
+          DM.recs.unshift({ time, type: ty, address: 'Demo · ' + d.loc.lat + ', ' + d.loc.lng, place: d.place, map: `https://maps.google.com/?q=${d.loc.lat},${d.loc.lng}`, inRange: ty === '拜访' ? '' : '是' });
+          return res({ type: ty, time, inRange: true });
+        }
+        case 'myCheckIns': return res(DM.recs);
+        case 'pointsLog': return res(DM.log);
+        case 'org': return res({ branch: DM.me.branch, members: [{ name: 'Tan Wei Ming', level: 'Branch Committee' }, { name: 'Lim Mei Ling', level: 'Member' }, { name: 'Ahmad Faizal', level: 'Member' }] });
+        case 'hostActivity': DM.acts.push({ id: 'N' + Date.now(), title: d.title, date: d.date, time: d.time, location: d.location, desc: d.desc, quota: +d.quota || 0, count: 0, points: 0, registered: false, attended: false, status: '待审核', hostId: DM.me.id }); return res(true);
+        case 'privacy': return res('(Demo) We only collect your member details, event records, and your location at the moment you check in.');
+        default: return res(true);
+      }
+    } catch (e) { rej(new Error(e)); }
+  }, 250));
+}
+
+/* ---------- 启动 ---------- */
+(async () => {
+  if (S.token) {
+    $('#app').innerHTML = loader;
+    try { S.me = await api('me'); } catch (e) { if (String(e.message) !== 'AUTH') { S.me = null; } S.token = S.me ? S.token : null; if (!S.me) ls('tk', null); }
+  }
+  render();
+})();
+</script>
+</body>
+</html>
