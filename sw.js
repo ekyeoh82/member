@@ -1,5 +1,5 @@
 // 更新前端后，把版本号 +1，员工手机会自动拿到新版
-const V = 'member-v1';
+const V = 'member-v2';
 const SHELL = ['./', 'index.html', 'config.js', 'lib/qrcode.js', 'manifest.webmanifest',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 
